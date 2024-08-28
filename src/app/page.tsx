@@ -1,112 +1,340 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Button, Collapse, Input, Select } from 'antd';
+
+import {
+  fetchCharacterBasicInfo,
+  fetchCharacterBeautyInfo,
+  fetchCharacterGuildInfo,
+  fetchCharacterId,
+  fetchCharacterItemInfo,
+  fetchCharacterPetInfo,
+  fetchCharacterSkillInfo,
+  fetchCharacterStatInfo,
+  fetchCharacterVmatrixInfo,
+} from '~/lib/queries';
+import { WORLDS } from '~/lib/constants';
+
+import type {
+  CharacterBasicInfo,
+  CharacterBeautyInfo,
+  CharacterPetInfo,
+  CharacterSkillInfo,
+  CharacterVmatrixInfo,
+  ItemEquipment,
+  Stat,
+  VCoreEquipment,
+} from '~/types/queries';
+
+type CharacterInfo = {
+  basicInfo: CharacterBasicInfo | null;
+  // beautyInfo: CharacterBeautyInfo | null;
+  guildName: string;
+  itemEquipment: ItemEquipment[];
+  petInfo: CharacterPetInfo | null;
+  skillInfo: CharacterSkillInfo | null;
+  stat: Stat[];
+  vmatrixInfo: RefinedVmatrix;
+};
+
+type RefinedVmatrix = {
+  enhancement: VCoreEquipment[];
+  skill: VCoreEquipment[];
+  special: VCoreEquipment[];  
+}
+
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+  const router = useRouter();
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+  const [form, setForm] = useState({
+    characterName: '홍차',
+    worldName: '크로아',
+  });
+  const [characterInfo, setCharacterInfo] = useState<CharacterInfo>({
+    basicInfo: null,
+    // beautyInfo: null,
+    guildName: '',
+    itemEquipment: [],
+    petInfo: null,
+    skillInfo: null,
+    stat: [],
+    vmatrixInfo: {
+      enhancement: [],
+      skill: [],
+      special: [],
+    },
+  });
+
+  const onSearch = async () => {
+    try {
+      const { ocid } = await fetchCharacterId(form);
+      const [
+        basicInfo,
+        // beautyInfo,
+        { guild_name },
+        { item_equipment },
+        petInfo,
+        skillInfo,
+        { stat },
+        vmatrixInfo,
+      ] = await Promise.all([
+        fetchCharacterBasicInfo(ocid),
+        // fetchCharacterBeautyInfo(ocid),
+        fetchCharacterGuildInfo(ocid),
+        fetchCharacterItemInfo(ocid),
+        fetchCharacterPetInfo(ocid),
+        fetchCharacterSkillInfo(ocid),
+        fetchCharacterStatInfo(ocid),
+        fetchCharacterVmatrixInfo(ocid),
+      ]);
+
+      const refinedVmatrix = vmatrixInfo.character_v_core_equipment.reduce<RefinedVmatrix>((acc, cur) => {
+        if (cur.v_core_type === 'Enhancement') {
+          acc.enhancement.push(cur);
+        } else if (cur.v_core_type === 'Skill') {
+          acc.skill.push(cur);
+        } else if (cur.v_core_type === 'Special') {
+          acc.special.push(cur);
+        }
+
+        return acc;
+      }, {
+        enhancement: [],
+        skill: [],
+        special: [],
+      })
+
+      setCharacterInfo({
+        basicInfo,
+        // beautyInfo,
+        guildName: guild_name,
+        itemEquipment: item_equipment,
+        petInfo,
+        skillInfo,
+        stat,
+        vmatrixInfo: refinedVmatrix,
+      });
+    } catch (error) {}
+  };
+
+  console.log(characterInfo);
+
+  return (
+    <main className="flex h-full flex-col p-5 gap-y-4 mx-auto mb-20 w-128 z-50 overflow-y-auto">
+      <div className="font-extrabold text-center text-4xl">🪄 보여조 🪄</div>
+      <div className="flex flex-col gap-y-1">
+        <label className="font-medium text-lg">월드</label>
+        <Select
+          className="w-full"
+          defaultValue={WORLDS[0].name}
+          fieldNames={{ label: 'name', value: 'name' }}
+          options={WORLDS}
+          size="large"
+          value={form.worldName}
+          labelRender={(option) => (
+            <div className="flex gap-x-2">
+              <img
+                src={WORLDS.find((world) => world.name === option.value)!.logo}
+                width={20}
+                height={20}
+                alt="월드 로고"
+              />
+              {option.label}
+            </div>
+          )}
+          optionRender={(option) => (
+            <div className="flex gap-x-2">
+              <img
+                src={option.data.logo}
+                width={20}
+                height={20}
+                alt="월드 로도 이미지"
+              />
+              {option.label}
+            </div>
+          )}
+          onSelect={(value) => setForm({ ...form, worldName: value })}
+        />
+      </div>
+      <div className="flex flex-col gap-y-1">
+        <label className="font-medium text-lg">닉네임</label>
+        <Input
+          size="large"
+          maxLength={20}
+          placeholder="캐릭터 닉네임을 입력해주세요!"
+          value={form.characterName}
+          onChange={({ target }) =>
+            setForm({ ...form, characterName: target.value })
+          }
         />
       </div>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+      <Collapse
+        collapsible="header"
+        defaultActiveKey={['1']}
+        size="large"
+        items={[
+          {
+            key: '1',
+            label: `${characterInfo.basicInfo?.character_name} 기본 정보`,
+            children: (
+              <div>
+                <div>닉네임: {characterInfo.basicInfo?.character_name}</div>
+                <div>월드: {characterInfo.basicInfo?.world_name}</div>
+                <div>직업: {characterInfo.basicInfo?.character_job_name}</div>
+                <div>레벨: {characterInfo.basicInfo?.character_level}</div>
+                <div>길드: {characterInfo.guildName}</div>
+                <div>
+                  생년월일: {characterInfo.basicInfo?.character_date_create}
+                </div>
+              </div>
+            ),
+          },
+        ]}
+      />
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+      <Collapse 
+        collapsible="header"
+        defaultActiveKey={['1']}
+        size="large"
+        items={[
+          {
+            key: '1',
+            label: '스탯 정보',
+            children: (
+              <div>
+                <div>{characterInfo.stat.map((stat) => <div>
+                  {stat.stat_name}: {stat.stat_value}
+                  </div>)}</div>
+              </div>
+            ),
+                }
+        ]}
+      />
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+      <Collapse
+        collapsible="header"
+        defaultActiveKey={['1']}
+        size="large"
+        items={[
+          {
+            key: '1',
+            label: '스킬 정보',
+            children: (
+              <div className="flex flex-col gap-y-4">
+                <div>
+                  <label>스킬 프리셋</label>
+                  {characterInfo?.skillInfo?.skill.preset.map((preset) => (
+                    <div>
+                      <div>프리셋 {preset.preset_slot_no}번</div>
+                      <span>{preset.skill_name_1 || 'X'} / </span>
+                      <span>{preset.skill_name_2 || 'X'} / </span>
+                      <span>{preset.skill_name_3 || 'X'} / </span>
+                      <span>{preset.skill_name_4 || 'X'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ),
+          },
+        ]}
+      />
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
+      <Collapse
+        collapsible="header"
+        defaultActiveKey={['1']}
+        size="large"
+        items={[
+          {
+            key: '1',
+            label: 'V 매트릭스 정보',
+            children: (
+              <>
+              <label>5차 스킬</label>
+                {characterInfo.vmatrixInfo.skill.map(
+                  (core) => (
+                    <>
+                      <div>
+                        {core.v_core_name} ({core.v_core_level}+
+                        {core.slot_level})
+                      </div>
+                      <br />
+                    </>
+                  )
+                )}
+
+                <label>강화 스킬</label>
+                {characterInfo.vmatrixInfo.enhancement.map(
+                  (core) => (
+                    <>
+                      <div>
+                        {core.v_core_name} ({core.v_core_level}+
+                        {core.slot_level})
+                        {core.v_core_type === 'Enhancement' && (
+                          <>
+                            <br />
+                            {core.v_core_skill_name_1} + {core.v_core_skill_name_2} + {core.v_core_skill_name_3}
+                          </>
+                        )}
+                      </div>
+                      <br />
+                    </>
+                  )
+                )}
+
+                <label>특수 스킬</label>
+                {characterInfo.vmatrixInfo.special.map(
+                  (core) => (
+                    <>
+                      <div>
+                        {core.v_core_name} ({core.v_core_level}+
+                        {core.slot_level})
+                      
+                      </div>
+                      <br />
+                    </>
+                  )
+                )}
+
+              </>
+            ),
+          },
+        ]}
+      />
+
+      <Collapse
+        collapsible="header"
+        defaultActiveKey={['1']}
+        size="large"
+        items={[
+          {
+            key: '1',
+            label: '펫 정보',
+            children: (
+              <div>
+                {characterInfo.petInfo?.pet_1_name} ({characterInfo.petInfo?.pet_1_date_expire} 사망 예정)
+                <br/>
+                {characterInfo.petInfo?.pet_2_name} ({characterInfo.petInfo?.pet_2_date_expire} 사망 예정)
+                <br/>
+                {characterInfo.petInfo?.pet_3_name} ({characterInfo.petInfo?.pet_3_date_expire} 사망 예정)
+              </div>
+            ),
+          },
+        ]}
+      />
+
+      <div className="fixed bottom-0 right-0 left-0 w-full bg-white flex justify-center">
+        <Button
+          className="h-14 text-2xl font-bold w-128 mb-4 mx-5"
+          size="large"
+          type="primary"
+          onClick={onSearch}
         >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+          보여조 !
+        </Button>
       </div>
     </main>
   );
