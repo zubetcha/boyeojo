@@ -29,11 +29,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["@types/antd", "npm:1.0.0"],\
+            ["@types/date-fns", "npm:2.6.0"],\
             ["@types/next", "npm:9.0.0"],\
             ["@types/node", "npm:20.16.1"],\
             ["@types/react", "npm:18.3.4"],\
             ["@types/react-dom", "npm:18.3.0"],\
             ["antd", "virtual:67666bd7d50dd69a61f5cfb2ace62d2087f5fb9c2afd4d947ad518ae3763d4cf5cb92838a371aea22cceb405cb43e449961f6be364d84e01e086297ec5af678f#npm:5.20.3"],\
+            ["date-fns", "npm:3.6.0"],\
             ["eslint", "npm:8.57.0"],\
             ["eslint-config-next", "virtual:67666bd7d50dd69a61f5cfb2ace62d2087f5fb9c2afd4d947ad518ae3763d4cf5cb92838a371aea22cceb405cb43e449961f6be364d84e01e086297ec5af678f#npm:14.2.6"],\
             ["next", "virtual:67666bd7d50dd69a61f5cfb2ace62d2087f5fb9c2afd4d947ad518ae3763d4cf5cb92838a371aea22cceb405cb43e449961f6be364d84e01e086297ec5af678f#npm:14.2.6"],\
@@ -1066,6 +1068,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["@types/date-fns", [\
+        ["npm:2.6.0", {\
+          "packageLocation": "./.yarn/cache/@types-date-fns-npm-2.6.0-516bcda282-6839db1d12.zip/node_modules/@types/date-fns/",\
+          "packageDependencies": [\
+            ["@types/date-fns", "npm:2.6.0"],\
+            ["date-fns", "npm:3.6.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["@types/json5", [\
         ["npm:0.0.29", {\
           "packageLocation": "./.yarn/cache/@types-json5-npm-0.0.29-f63a7916bd-e60b153664.zip/node_modules/@types/json5/",\
@@ -2001,6 +2013,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["call-bind", "npm:1.0.7"],\
             ["es-errors", "npm:1.3.0"],\
             ["is-data-view", "npm:1.0.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["date-fns", [\
+        ["npm:3.6.0", {\
+          "packageLocation": "./.yarn/cache/date-fns-npm-3.6.0-e59d980978-0daa1e9a43.zip/node_modules/date-fns/",\
+          "packageDependencies": [\
+            ["date-fns", "npm:3.6.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -7601,11 +7622,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["untitled", "workspace:."],\
             ["@types/antd", "npm:1.0.0"],\
+            ["@types/date-fns", "npm:2.6.0"],\
             ["@types/next", "npm:9.0.0"],\
             ["@types/node", "npm:20.16.1"],\
             ["@types/react", "npm:18.3.4"],\
             ["@types/react-dom", "npm:18.3.0"],\
             ["antd", "virtual:67666bd7d50dd69a61f5cfb2ace62d2087f5fb9c2afd4d947ad518ae3763d4cf5cb92838a371aea22cceb405cb43e449961f6be364d84e01e086297ec5af678f#npm:5.20.3"],\
+            ["date-fns", "npm:3.6.0"],\
             ["eslint", "npm:8.57.0"],\
             ["eslint-config-next", "virtual:67666bd7d50dd69a61f5cfb2ace62d2087f5fb9c2afd4d947ad518ae3763d4cf5cb92838a371aea22cceb405cb43e449961f6be364d84e01e086297ec5af678f#npm:14.2.6"],\
             ["next", "virtual:67666bd7d50dd69a61f5cfb2ace62d2087f5fb9c2afd4d947ad518ae3763d4cf5cb92838a371aea22cceb405cb43e449961f6be364d84e01e086297ec5af678f#npm:14.2.6"],\

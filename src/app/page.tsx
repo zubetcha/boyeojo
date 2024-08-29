@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Button, Collapse, Input, Select } from 'antd';
+import Image from 'next/image';
+import { Button, Collapse, Divider, Input, Select, Tag } from 'antd';
+import { differenceInDays } from 'date-fns'
 
 import {
   fetchCharacterBasicInfo,
@@ -15,6 +17,7 @@ import {
   fetchCharacterStatInfo,
   fetchCharacterVmatrixInfo,
 } from '~/lib/queries';
+import { formatDate, formatDatetime } from '~/lib/utils';
 import { WORLDS } from '~/lib/constants';
 
 import type {
@@ -38,6 +41,11 @@ type CharacterInfo = {
   stat: Stat[];
   vmatrixInfo: RefinedVmatrix;
 };
+
+type Tag = {
+color: string;
+label: string;
+}
 
 type RefinedVmatrix = {
   enhancement: VCoreEquipment[];
@@ -67,6 +75,41 @@ export default function Home() {
       special: [],
     },
   });
+
+  const {basicInfo, guildName, itemEquipment, petInfo, skillInfo, stat, vmatrixInfo} = characterInfo
+
+
+  const tags: Tag[] = useMemo(() => {
+    const equip = itemEquipment.reduce((acc, cur) => {
+      if (cur.item_name.includes('혈맹의 반지')) {
+        acc.hasHyulBan = true;
+      }
+
+      if (cur.item_name.includes('유니온의 가호')) {
+        acc.hasGaho = true;
+      }
+
+      if (cur.item_name.includes('아케인셰이드')) {
+        acc.arcane += 1;
+      }
+
+      if (cur.item_name.includes('앱솔랩스')) {
+        acc.absolabs += 1;
+      }
+
+      return acc;
+    }, {hasHyulBan: false, hasGaho: false, arcane: 0, absolabs: 0})
+
+    const { hasHyulBan, hasGaho, arcane, absolabs } = equip;
+    const tags = [
+      {color : hasHyulBan ? 'green' : 'red', label: hasHyulBan ? '혈반 있음': '혈반 없음'},
+      {color : hasGaho ? 'green' : 'red', label: hasGaho ? '가호 있음' : '가호 없음'},
+      {color: 'cyan', label: `${arcane}앜 ${absolabs}앱`},
+    ]
+
+
+    return tags
+  }, [itemEquipment])
 
   const onSearch = async () => {
     try {
@@ -107,6 +150,7 @@ export default function Home() {
         special: [],
       })
 
+
       setCharacterInfo({
         basicInfo,
         // beautyInfo,
@@ -123,7 +167,7 @@ export default function Home() {
   console.log(characterInfo);
 
   return (
-    <main className="flex h-full flex-col p-5 gap-y-4 mx-auto mb-20 w-128 z-50 overflow-y-auto">
+    <main className="flex h-full flex-col p-5 gap-y-4 mx-auto mb-24 w-128 z-50 overflow-y-auto">
       <div className="font-extrabold text-center text-4xl">🪄 보여조 🪄</div>
       <div className="flex flex-col gap-y-1">
         <label className="font-medium text-lg">월드</label>
@@ -135,11 +179,12 @@ export default function Home() {
           size="large"
           value={form.worldName}
           labelRender={(option) => (
-            <div className="flex gap-x-2">
-              <img
-                src={WORLDS.find((world) => world.name === option.value)!.logo}
+            <div className="flex gap-x-2 items-center">
+              <Image
+                src={`/logo/${option.value}.png`}
                 width={20}
                 height={20}
+                style={{height: '20px'}}
                 alt="월드 로고"
               />
               {option.label}
@@ -147,8 +192,8 @@ export default function Home() {
           )}
           optionRender={(option) => (
             <div className="flex gap-x-2">
-              <img
-                src={option.data.logo}
+              <Image
+                src={`/logo/${option.value}.png`}
                 width={20}
                 height={20}
                 alt="월드 로도 이미지"
@@ -172,6 +217,16 @@ export default function Home() {
         />
       </div>
 
+      {basicInfo && (
+        <>
+         <Divider className='my-1' />
+
+      <div className='flex flex-wrap gap-x-0.5 gap-y-2'>
+        {tags.map((tag, index) => (
+          <Tag key={index} color={tag.color} className='text-base'>{tag.label}</Tag>
+        ))}
+      </div>
+
       <Collapse
         collapsible="header"
         defaultActiveKey={['1']}
@@ -179,18 +234,18 @@ export default function Home() {
         items={[
           {
             key: '1',
-            label: `${characterInfo.basicInfo?.character_name} 기본 정보`,
+            label: `${basicInfo?.character_name} 기본 정보`,
             children: (
-              <div>
-                <div>닉네임: {characterInfo.basicInfo?.character_name}</div>
-                <div>월드: {characterInfo.basicInfo?.world_name}</div>
-                <div>직업: {characterInfo.basicInfo?.character_job_name}</div>
-                <div>레벨: {characterInfo.basicInfo?.character_level}</div>
-                <div>길드: {characterInfo.guildName}</div>
-                <div>
-                  생년월일: {characterInfo.basicInfo?.character_date_create}
-                </div>
-              </div>
+              <ul className='list-disc pl-3'>
+                <li>닉네임: {basicInfo?.character_name}</li>
+                <li>월드: {basicInfo?.world_name}</li>
+                <li>직업: {basicInfo?.character_job_name}</li>
+                <li>레벨: {basicInfo?.character_level}</li>
+                <li>길드: {guildName || 'X'}</li>
+                <li>
+                  생년월일: {formatDate(basicInfo?.character_date_create)}
+                </li>
+              </ul>
             ),
           },
         ]}
@@ -205,11 +260,11 @@ export default function Home() {
             key: '1',
             label: '스탯 정보',
             children: (
-              <div>
-                <div>{characterInfo.stat.map((stat) => <div>
-                  {stat.stat_name}: {stat.stat_value}
-                  </div>)}</div>
-              </div>
+                <ul className='list-disc pl-3'>
+                  {stat.map((stat) => (
+                    <li>{stat.stat_name}: {Number(stat.stat_value).toLocaleString('ko-KR')}</li>
+                  ))}
+                </ul>
             ),
                 }
         ]}
@@ -254,7 +309,7 @@ export default function Home() {
             children: (
               <>
               <label>5차 스킬</label>
-                {characterInfo.vmatrixInfo.skill.map(
+                {vmatrixInfo.skill.map(
                   (core) => (
                     <>
                       <div>
@@ -267,7 +322,7 @@ export default function Home() {
                 )}
 
                 <label>강화 스킬</label>
-                {characterInfo.vmatrixInfo.enhancement.map(
+                {vmatrixInfo.enhancement.map(
                   (core) => (
                     <>
                       <div>
@@ -286,7 +341,7 @@ export default function Home() {
                 )}
 
                 <label>특수 스킬</label>
-                {characterInfo.vmatrixInfo.special.map(
+                {vmatrixInfo.special.map(
                   (core) => (
                     <>
                       <div>
@@ -312,30 +367,55 @@ export default function Home() {
         items={[
           {
             key: '1',
-            label: '펫 정보',
+            label: <div>
+              펫 정보 (<span className='text-sm'>펫 생명이 <span className='font-bold text-blue-500'>3일</span> 이하로 남은 경우 태그가 표시됩니다</span>)
+            </div>,
             children: (
-              <div>
-                {characterInfo.petInfo?.pet_1_name} ({characterInfo.petInfo?.pet_1_date_expire} 사망 예정)
-                <br/>
-                {characterInfo.petInfo?.pet_2_name} ({characterInfo.petInfo?.pet_2_date_expire} 사망 예정)
-                <br/>
-                {characterInfo.petInfo?.pet_3_name} ({characterInfo.petInfo?.pet_3_date_expire} 사망 예정)
-              </div>
+                <ul className='list-disc pl-3'>
+                  {petInfo?.pet_1_name && petInfo?.pet_1_date_expire && 
+                    <div className='flex gap-x-2'>
+                      <li>{petInfo.pet_1_name}</li>
+                      {differenceInDays(new Date(petInfo.pet_1_date_expire), new Date()) <= 3 && (
+                        <Tag color='red'>생명의 물 필요</Tag>
+                      )}
+                    </div>
+                  }
+                  {petInfo?.pet_2_name && petInfo?.pet_2_date_expire && 
+                    <div className='flex gap-x-2'>
+                      <li>{petInfo.pet_2_name}</li>
+                      {differenceInDays(new Date(petInfo.pet_2_date_expire), new Date()) <= 3 && (
+                        <Tag color='red'>생명의 물 필요</Tag>
+                      )}
+                    </div>
+                  }
+                  {petInfo?.pet_3_name && petInfo?.pet_3_date_expire && 
+                    <div className='flex gap-x-2'>
+                      <li>{petInfo.pet_3_name}</li>
+                      {differenceInDays(new Date(petInfo.pet_3_date_expire), new Date()) <= 3 && (
+                        <Tag color='red'>생명의 물 필요</Tag>
+                      )}
+                    </div>
+                  }
+                </ul>
             ),
           },
         ]}
       />
+        </>
+      )}
 
-      <div className="fixed bottom-0 right-0 left-0 w-full bg-white flex justify-center">
-        <Button
-          className="h-14 text-2xl font-bold w-128 mb-4 mx-5"
-          size="large"
-          type="primary"
-          onClick={onSearch}
-        >
-          보여조 !
-        </Button>
-      </div>
+      {/* <div className="fixed bottom-0 right-0 left-0 w-full bg-white flex justify-center"> */}
+        <div className='w-128 p-5 fixed bottom-0 left-1/2 -translate-x-1/2 bg-white'>
+          <Button
+            className="h-14 text-2xl font-bold w-full"
+            size="large"
+            type="primary"
+            onClick={onSearch}
+          >
+            보여조!
+          </Button>
+        </div>
+      {/* </div> */}
     </main>
   );
 }
