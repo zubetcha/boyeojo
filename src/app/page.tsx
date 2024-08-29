@@ -262,7 +262,7 @@ export default function Home() {
             children: (
                 <ul className='list-disc pl-3'>
                   {stat.map((stat) => (
-                    <li>{stat.stat_name}: {Number(stat.stat_value).toLocaleString('ko-KR')}</li>
+                    <li key={`stat-${stat.stat_name}`}>{stat.stat_name}: {Number(stat.stat_value).toLocaleString('ko-KR')}</li>
                   ))}
                 </ul>
             ),
@@ -283,7 +283,7 @@ export default function Home() {
                 <div>
                   <label>스킬 프리셋</label>
                   {characterInfo?.skillInfo?.skill.preset.map((preset) => (
-                    <div>
+                    <div key={`preset-${preset.preset_slot_no}`}>
                       <div>프리셋 {preset.preset_slot_no}번</div>
                       <span>{preset.skill_name_1 || 'X'} / </span>
                       <span>{preset.skill_name_2 || 'X'} / </span>
