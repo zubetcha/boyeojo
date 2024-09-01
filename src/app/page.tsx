@@ -1,23 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { Button, Collapse, Divider, Input, message, Modal, Select, Tag } from 'antd';
+import { Collapse, Divider, Modal, Tag } from 'antd';
 import { differenceInDays } from 'date-fns'
 
-import {
-  fetchCharacterBasicInfo,
-  fetchCharacterGuildInfo,
-  fetchCharacterId,
-  fetchCharacterItemInfo,
-  fetchCharacterPetInfo,
-  fetchCharacterSkillInfo,
-  fetchCharacterStatInfo,
-  fetchCharacterVmatrixInfo,
-} from '~/lib/queries';
-import { formatDate, formatDatetime } from '~/lib/utils';
-import { WORLDS } from '~/lib/constants';
+import { formatDate } from '~/lib/utils';
 
 import type {
   CharacterBasicInfo,
@@ -27,6 +15,7 @@ import type {
   Stat,
   VCoreEquipment,
 } from '~/types/queries';
+import SearchForm from '~/components/SearchForm';
 
 const INITIAL_CHARACTER_INFO = {
     basicInfo: null,
@@ -42,7 +31,7 @@ const INITIAL_CHARACTER_INFO = {
     },
   }
 
-type CharacterInfo = {
+export type CharacterInfo = {
   basicInfo: CharacterBasicInfo | null;
   guildName: string;
   itemEquipment: ItemEquipment[];
@@ -57,7 +46,7 @@ color: string;
 label: string;
 }
 
-type RefinedVmatrix = {
+export type RefinedVmatrix = {
   enhancement: VCoreEquipment[];
   skill: VCoreEquipment[];
   special: VCoreEquipment[];  
@@ -65,15 +54,7 @@ type RefinedVmatrix = {
 
 
 export default function Home() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const [characterInfo, setCharacterInfo] = useState<CharacterInfo>(INITIAL_CHARACTER_INFO);
-  const [form, setForm] = useState({
-    characterName: '홍차',
-    worldName: '크로아',
-  });
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {basicInfo, guildName, itemEquipment, petInfo, skillInfo, stat, vmatrixInfo} = characterInfo
 
@@ -119,95 +100,13 @@ export default function Home() {
     })
   }, [itemEquipment]);
 
-  const handleSearchParams = ({characterName, worldName}: {characterName: string; worldName: string}) => {
-    const url = new URLSearchParams({characterName, worldName}).toString();
-    router.push(`/?${url}` );
+  const handleSuccess = (info: CharacterInfo) => {
+    setCharacterInfo(info);
   }
 
-  const onSearch = async ({characterName, worldName}: {characterName: string; worldName: string}) => {
-    try {
-      const res = await fetchCharacterId({characterName, worldName});
-
-      if (!res) {
-        return;
-      }
-
-      const {ocid} = res;
-
-
-      const [
-        basicInfo,
-        // beautyInfo,
-        { guild_name },
-        { item_equipment },
-        petInfo,
-        skillInfo,
-        { stat },
-        vmatrixInfo,
-      ] = await Promise.all([
-        fetchCharacterBasicInfo(ocid),
-        fetchCharacterGuildInfo(ocid),
-        fetchCharacterItemInfo(ocid),
-        fetchCharacterPetInfo(ocid),
-        fetchCharacterSkillInfo(ocid),
-        fetchCharacterStatInfo(ocid),
-        fetchCharacterVmatrixInfo(ocid),
-      ]);
-
-      const refinedVmatrix = vmatrixInfo.character_v_core_equipment.reduce<RefinedVmatrix>((acc, cur) => {
-        if (cur.v_core_type === 'Enhancement') {
-          acc.enhancement.push(cur);
-        } else if (cur.v_core_type === 'Skill') {
-          acc.skill.push(cur);
-        } else if (cur.v_core_type === 'Special') {
-          acc.special.push(cur);
-        }
-
-        return acc;
-      }, {
-        enhancement: [],
-        skill: [],
-        special: [],
-      })
-
-
-      setCharacterInfo({
-        basicInfo,
-        guildName: guild_name || '',
-        itemEquipment: item_equipment,
-        petInfo,
-        skillInfo,
-        stat,
-        vmatrixInfo: refinedVmatrix,
-      });
-    } catch (error) {
-      setIsModalOpen(true)
-
-      setTimeout(() => {
-        setCharacterInfo(INITIAL_CHARACTER_INFO)
-        setForm({
-          ...form,
-          characterName: '',
-        })
-        setIsModalOpen(false)
-        router.replace('/')
-      }, 1500)
-    }
-  };
-
-  useEffect(() => {
-    const characterName = searchParams.get('characterName');    
-    const worldName = searchParams.get('worldName');
-
-    if (characterName && worldName) {
-      setForm({
-        characterName,
-        worldName,
-      });
-
-      onSearch({characterName, worldName});
-    }
-  }, [searchParams])
+  const handleError = () => {
+    setCharacterInfo(INITIAL_CHARACTER_INFO);
+  }
 
   console.log(characterInfo);
 
@@ -215,58 +114,12 @@ export default function Home() {
     <>
       <main className="flex h-full flex-col p-5 gap-y-4 mx-auto mb-24 min-w-64 max-w-3xl w-full z-50 overflow-y-auto">
       <div className="flex justify-center items-center gap-x-3">
-        {/* <span className="font-extrabold text-center text-3xl text-blue-500">보여조</span> */}
-        <Image src='/gif/슬라임.gif' width={48} height={48} alt='슬라임 움짤' />
+        <Image src='/gif/슬라임.gif' width={60} height={60} alt='슬라임 움짤' />
       </div>
-      
-      <div className="flex flex-col gap-y-1">
-        <label className="font-semibold text-lg">월드</label>
-        <Select
-          className="w-full"
-          defaultValue={WORLDS[0].name}
-          fieldNames={{ label: 'name', value: 'name' }}
-          options={WORLDS}
-          size="large"
-          value={form.worldName}
-          labelRender={(option) => (
-            <div className="flex gap-x-2 items-center">
-              <Image
-                src={`/logo/${option.value}.png`}
-                width={20}
-                height={20}
-                style={{height: '20px'}}
-                alt="월드 로고"
-              />
-              {option.label}
-            </div>
-          )}
-          optionRender={(option) => (
-            <div className="flex gap-x-2">
-              <Image
-                src={`/logo/${option.value}.png`}
-                width={20}
-                height={20}
-                alt="월드 로도 이미지"
-              />
-              {option.label}
-            </div>
-          )}
-          onSelect={(value) => setForm({ ...form, worldName: value })}
-        />
-      </div>
-      <div className="flex flex-col gap-y-1">
-        <label className="font-semibold text-lg">닉네임</label>
-        <Input
-          size="large"
-          maxLength={20}
-          placeholder="캐릭터 닉네임을 입력해주세요!"
-          value={form.characterName}
-          onChange={({ target }) =>
-            setForm({ ...form, characterName: target.value })
-          }
-          onKeyDown={(e) => e.key === 'Enter' && handleSearchParams(form)}
-        />
-      </div>
+
+      <Suspense>
+        <SearchForm onError={handleError} onSuccess={handleSuccess} />
+      </Suspense>
 
       {basicInfo && (
         <>
@@ -318,7 +171,6 @@ export default function Home() {
           },
         ]}
       />
-
 
       <Collapse 
         collapsible="header"
@@ -406,13 +258,13 @@ export default function Home() {
                     <label className='text-blue-500 font-bold'>5차 스킬</label>
                     <ul className='list-disc pl-4'>
                       {vmatrixInfo.skill.map(
-                      (core) => (
-                        <li>
-                          {core.v_core_name} ({core.v_core_level}
-                          {!!core.slot_level && `+${core.slot_level}`}) {!!core.slot_level && <Tag  bordered={false} color='blue'>슬롯강화</Tag>}
-                        </li>
-                      )
-                    )}
+                        (core) => (
+                          <li key={`5차-${core.slot_id}`}>
+                            {core.v_core_name} ({core.v_core_level}
+                            {!!core.slot_level && `+${core.slot_level}`}) {!!core.slot_level && <Tag  bordered={false} color='blue'>슬롯강화</Tag>}
+                          </li>
+                        )
+                      )}
                     </ul>
                     <br/>
                   </>
@@ -449,7 +301,7 @@ export default function Home() {
                     <ul className='list-disc pl-4'>
                       {vmatrixInfo.special.map(
                         (core) => (
-                          <li>
+                          <li key={`${core.v_core_name}`}>
                             {core.v_core_name} ({core.v_core_level})
                           </li>
                         )
@@ -472,7 +324,7 @@ export default function Home() {
           {
             key: '1',
             label: <div className='font-semibold'>
-              펫 정보 (<span className='text-sm font-normal'>펫 생명이 <span className='font-bold text-blue-500'>3일</span> 이하로 남은 경우 태그가 표시됩니다</span>)
+              펫 정보 (<span className='text-sm font-normal'>펫 생명이 <span className='font-bold text-blue-500'>3일</span> 이하로 남은 경우 <Tag bordered={false} color='red'>생명의 물</Tag> 태그가 표시됩니다</span>)
             </div>,
             children: (
                 <ul className='list-disc pl-4'>
@@ -480,7 +332,7 @@ export default function Home() {
                     <div className='flex gap-x-2'>
                       <li>{petInfo.pet_1_name}</li>
                       {differenceInDays(new Date(petInfo.pet_1_date_expire), new Date()) <= 3 && (
-                        <Tag bordered={false} color='red'>생명의 물 필요</Tag>
+                        <Tag bordered={false} color='red'>생명의 물</Tag>
                       )}
                     </div>
                   }
@@ -488,7 +340,7 @@ export default function Home() {
                     <div className='flex gap-x-2'>
                       <li>{petInfo.pet_2_name}</li>
                       {differenceInDays(new Date(petInfo.pet_2_date_expire), new Date()) <= 3 && (
-                        <Tag bordered={false} color='red'>생명의 물 필요</Tag>
+                        <Tag bordered={false} color='red'>생명의 물</Tag>
                       )}
                     </div>
                   }
@@ -496,7 +348,7 @@ export default function Home() {
                     <div className='flex gap-x-2'>
                       <li>{petInfo.pet_3_name}</li>
                       {differenceInDays(new Date(petInfo.pet_3_date_expire), new Date()) <= 3 && (
-                        <Tag bordered={false} color='red'>생명의 물 필요</Tag>
+                        <Tag bordered={false} color='red'>생명의 물</Tag>
                       )}
                     </div>
                   }
@@ -508,33 +360,11 @@ export default function Home() {
         </>
       )}
 
-      <div className='w-full fixed bottom-0 right-0 left-0 bg-white flex justify-center'>
-        <div className='w-full min-w-64 max-w-3xl p-5'>
-          <Button
-            className="h-14 text-2xl font-bold w-full"
-            size="large"
-            type="primary"
-            onClick={() => handleSearchParams(form)}
-          >
-            보여조 !
-          </Button>
-        </div>
+      <div className='flex flex-col items-center justify-self-end'>
+        <span className='text-sm text-gray-700'>© 2024. All rights reserved.</span>
+        <span className='text-xs text-gray-400 font-light'>Data Provided By NEXON</span>
       </div>
-    </main>
-
-    <Modal
-      centered
-      closeIcon={null}
-      footer={null}
-      open={isModalOpen}
-    >
-      <div className='flex flex-col items-center'>
-        <Image src='/gif/핑크빈1.gif' width={100} height={100} alt='핑크빈이 노래듣고 있음' />
-        <p className='text-lg font-medium'>
-          <span className='text-blue-500'>{form.characterName}</span>은/는 없는 캐릭터에요!
-        </p>
-      </div>
-    </Modal>
+      </main>
     </>
     
   );
