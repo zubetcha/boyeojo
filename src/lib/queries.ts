@@ -24,7 +24,7 @@ export const fetchCharacterId = async ({
 }: {
   characterName: string;
   worldName: string;
-}): Promise<CharacterIdInfo> => {
+}): Promise<CharacterIdInfo | undefined> => {
   const response = await fetch(
     `${MAPLE_M_PREFIX}/id?character_name=${characterName}&world_name=${worldName}`,
     {
@@ -33,7 +33,13 @@ export const fetchCharacterId = async ({
     }
   );
 
+  if (!response.ok) {
+    throw new Error('Character not found');
+  }
+  
   return response.json();
+
+
 };
 
 export const fetchCharacterBasicInfo = async (

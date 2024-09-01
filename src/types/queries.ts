@@ -1,3 +1,5 @@
+import type { Nullable } from "~/types/common";
+
 export type CharacterIdInfo = {
   ocid: string;
 };
@@ -34,7 +36,7 @@ export type CharacterStatInfo = {
 };
 
 export type CharacterGuildInfo = {
-  guild_name: string;
+  guild_name: Nullable<string>;
 };
 
 export type CharacterBeautyInfo = {
@@ -69,15 +71,15 @@ export type CharacterBeautyInfo = {
 };
 
 export type CharacterPetInfo = {
-  pet_1_name: string;
-  pet_1_pet_type: string;
-  pet_1_date_expire: string; // 2023-12-14T08:28:35Z
-  pet_2_name: string;
-  pet_2_pet_type: string;
-  pet_2_date_expire: string; // 2023-12-14T08:28:35Z
-  pet_3_name: string;
-  pet_3_pet_type: string;
-  pet_3_date_expire: string; // 2023-12-14T08:28:35Z
+  pet_1_name: Nullable<string>;
+  pet_1_pet_type: Nullable<string>;
+  pet_1_date_expire: Nullable<string>; // 2023-12-14T08:28:35Z
+  pet_2_name: Nullable<string>;
+  pet_2_pet_type: Nullable<string>;
+  pet_2_date_expire: Nullable<string>; // 2023-12-14T08:28:35Z
+  pet_3_name: Nullable<string>;
+  pet_3_pet_type: Nullable<string>;
+  pet_3_date_expire: Nullable<string>; // 2023-12-14T08:28:35Z
 };
 
 export type EquipmentSkill = {
@@ -110,13 +112,13 @@ export type StellaMemorize = {
 };
 
 export type CharacterSkillInfo = {
-  character_class: string;
-  skill: {
+  character_class: Nullable<string>;
+  skill: Nullable<{
     equipment_skill: EquipmentSkill[];
     preset: SkillPreset[];
     steal_skill: StealSkill[];
     stella_memorize: StellaMemorize[];
-  };
+  }>;
 };
 
 export type VCoreEquipment = {
