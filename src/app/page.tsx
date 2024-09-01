@@ -17,6 +17,13 @@ import type {
 } from '~/types/queries';
 import SearchForm from '~/components/SearchForm';
 
+const COLOR_BY_RATING: Record<string, string> = {
+  레전더리: 'green',
+  유니크: 'gold',
+  에픽: 'purple',
+  레어: 'blue',
+}
+
 const INITIAL_CHARACTER_INFO = {
     basicInfo: null,
     guildName: '',
@@ -93,11 +100,28 @@ export default function Home() {
   const equipments = useMemo(() => {
     const filtered = itemEquipment.filter((item) => {
       return !item.item_equipment_page_name.includes('Cash') && !['아케인심볼', '탈것', '이펙트', '안드로이드', '의자'].includes(item.item_equipment_page_name.split(' ')[1])
-    })
-
-    return filtered.sort((a, b) => {
+    }).sort((a, b) => {
       return a.item_equipment_page_name.localeCompare(b.item_equipment_page_name)
-    })
+    }).reduce<(ItemEquipment & { rating: string })[]>((acc, cur) => {
+      const itemInfo = {
+        ...cur,
+        rating: '',
+      }
+
+      if (cur.item_name.includes('[') && cur.item_name.includes(']')) {
+        const startIndex = cur.item_name.indexOf('[');
+        const endIndex = cur.item_name.indexOf(']');
+        const refinedItemName = cur.item_name.slice(0, startIndex - 1);
+        const rating = cur.item_name.slice(startIndex + 1, endIndex);
+
+        itemInfo.item_name = refinedItemName;
+        itemInfo.rating = rating === 'Legendary' ? '레전더리' : rating;
+      }
+
+      return acc;
+    }, [])
+
+    return filtered
   }, [itemEquipment]);
 
   const handleSuccess = (info: CharacterInfo) => {
@@ -109,7 +133,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex h-full flex-col justify-between p-5 mx-auto pb-28 min-w-64 max-w-3xl w-full z-50 overflow-y-auto">
+    <main className="flex h-full flex-col justify-between gap-y-4 p-5 mx-auto pb-28 min-w-64 max-w-3xl w-full z-50 overflow-y-auto">
       <div className='flex flex-col gap-y-4'>
         <div className="flex justify-center items-center gap-x-3">
           <Image src='/gif/슬라임.gif' width={60} height={60} alt='슬라임 움짤' />
@@ -161,9 +185,15 @@ export default function Home() {
           {
             key: '1',
             label: <span className='font-semibold'>장비 정보</span>,
-            children: <ul>
+            children: <ul className='list-disc pl-4'>
               {equipments.map((item) => (
-                <li key={`item-${item.item_name}`}>{item.item_equipment_slot_name}: {item.item_name}</li>
+                <div className='flex gap-x-2'>
+                  <li key={`item-${item.item_name}`}>
+                    {item.item_equipment_slot_name}: {item.item_name}
+                  </li>
+                  {item.rating && <Tag bordered={false} color={COLOR_BY_RATING[item.rating]}>{item.rating}</Tag>}
+                </div>
+
               ))}
             </ul>
           },
@@ -201,15 +231,17 @@ export default function Home() {
               <div className="flex flex-col gap-y-4">
                 <div>
                   <label className='text-blue-500 font-bold'>스킬 프리셋</label>
-                  {characterInfo?.skillInfo?.skill?.preset.map((preset) => (
-                    <div key={`preset-${preset.preset_slot_no}`}>
-                      <div>{preset.preset_slot_no}번 프리셋</div>
-                      <span>{preset.skill_name_1 || 'X'} / </span>
-                      <span>{preset.skill_name_2 || 'X'} / </span>
-                      <span>{preset.skill_name_3 || 'X'} / </span>
-                      <span>{preset.skill_name_4 || 'X'}</span>
-                    </div>
-                  ))}
+                  <ul className='list-disc pl-4'>
+                    {characterInfo?.skillInfo?.skill?.preset.map((preset) => (
+                      <div key={`preset-${preset.preset_slot_no}`}>
+                        <div>{preset.preset_slot_no}번 프리셋</div>
+                        <span>{preset.skill_name_1 || 'X'} / </span>
+                        <span>{preset.skill_name_2 || 'X'} / </span>
+                        <span>{preset.skill_name_3 || 'X'} / </span>
+                        <span>{preset.skill_name_4 || 'X'}</span>
+                      </div>
+                    ))}
+                  </ul>
 
                   {(characterInfo.skillInfo?.skill?.steal_skill.length || 0) > 0 && (
                     <>

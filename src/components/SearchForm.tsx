@@ -191,7 +191,7 @@ const SearchForm = ({onError, onSuccess}: Props) => {
         />
       </div>
 
-      <div className='w-full fixed bottom-0 right-0 left-0 bg-white flex justify-center'>
+      <div className='w-full fixed bottom-0 right-0 left-0 bg-white flex justify-center z-50'>
         <div className='w-full min-w-64 max-w-3xl p-5'>
           <Button
             className="h-14 text-2xl font-bold w-full"
