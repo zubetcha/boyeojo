@@ -187,7 +187,7 @@ export default function Home() {
             label: <span className='font-semibold'>장비 정보</span>,
             children: <ul className='list-disc pl-4'>
               {equipments.map((item) => (
-                <div className='flex gap-x-2'>
+                <div key={`장비-${item.item_name}`} className='flex gap-x-2'>
                   <li key={`item-${item.item_name}`}>
                     {item.item_equipment_slot_name}: {item.item_name}
                   </li>
