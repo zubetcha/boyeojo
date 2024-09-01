@@ -17,13 +17,12 @@ export const getCharacterTag = (basicInfo: CharacterBasicInfo | null) => {
   if (!basicInfo || !basicInfo.world_name.includes('크로아')) {
     return;
   }
-  
+
   const characterLabels: Record<string, string> = {
     홍차: '대마법사',
     리땡: '흑마법사',
     서진영: '약해빠짐',
     뚱이: '악의 추종자',
-    공주: '귀여워',
   }
 
   const label = characterLabels[basicInfo.character_name];
