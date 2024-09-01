@@ -118,6 +118,8 @@ export default function Home() {
         itemInfo.rating = rating === 'Legendary' ? '레전더리' : rating;
       }
 
+      acc.push(itemInfo);
+
       return acc;
     }, [])
 
