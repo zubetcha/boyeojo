@@ -108,18 +108,16 @@ export default function Home() {
     setCharacterInfo(INITIAL_CHARACTER_INFO);
   }
 
-  console.log(characterInfo);
-
   return (
-    <>
-      <main className="flex h-full flex-col p-5 gap-y-4 mx-auto mb-24 min-w-64 max-w-3xl w-full z-50 overflow-y-auto">
-      <div className="flex justify-center items-center gap-x-3">
-        <Image src='/gif/슬라임.gif' width={60} height={60} alt='슬라임 움짤' />
-      </div>
+    <main className="flex h-full flex-col justify-between p-5 mx-auto pb-28 min-w-64 max-w-3xl w-full z-50 overflow-y-auto">
+      <div className='flex flex-col gap-y-4'>
+        <div className="flex justify-center items-center gap-x-3">
+          <Image src='/gif/슬라임.gif' width={60} height={60} alt='슬라임 움짤' />
+        </div>
 
-      <Suspense>
-        <SearchForm onError={handleError} onSuccess={handleSuccess} />
-      </Suspense>
+        <Suspense>
+          <SearchForm onError={handleError} onSuccess={handleSuccess} />
+        </Suspense>
 
       {basicInfo && (
         <>
@@ -359,13 +357,13 @@ export default function Home() {
       />
         </>
       )}
+      </div>
+
 
       <div className='flex flex-col items-center justify-self-end'>
         <span className='text-sm text-gray-700'>© 2024. All rights reserved.</span>
         <span className='text-xs text-gray-400 font-light'>Data Provided By NEXON</span>
       </div>
-      </main>
-    </>
-    
+    </main>
   );
 }

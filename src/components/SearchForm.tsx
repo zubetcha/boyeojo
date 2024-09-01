@@ -43,7 +43,7 @@ const SearchForm = ({onError, onSuccess}: Props) => {
       })
       setTimeout(() => {
         setModalInfo(MODAL_INFO)
-      }, 1500)
+      }, 2000)
 
       return;
     }
@@ -121,7 +121,7 @@ const SearchForm = ({onError, onSuccess}: Props) => {
         })
         setModalInfo(MODAL_INFO);
         router.replace('/')
-      }, 1500)
+      }, 2000)
     }
   };
 

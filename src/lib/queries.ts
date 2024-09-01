@@ -10,12 +10,15 @@ import type {
   CharacterVmatrixInfo,
 } from '~/types/queries';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const LIVE_KEY = process.env.NEXT_PUBLIC_NEXON_OPEN_API_LIVE_KEY;
+const TEST_KEY = process.env.NEXT_PUBLIC_NEXON_OPEN_API_TEST_KEY;
 const BASE_URL = process.env.NEXT_PUBLIC_NEXON_OPEN_API_URL;
-const API_KEY = process.env.NEXT_PUBLIC_NEXON_OPEN_API_KEY || '';
+const API_KEY = isProduction ? LIVE_KEY : TEST_KEY;
 const MAPLE_M_PREFIX = `${BASE_URL}/maplestorym/v1`;
 
 const headers = {
-  ['x-nxopen-api-key']: API_KEY,
+  ['x-nxopen-api-key']: API_KEY || '',
 };
 
 export const fetchCharacterId = async ({
@@ -36,7 +39,7 @@ export const fetchCharacterId = async ({
   if (!response.ok) {
     throw new Error('Character not found');
   }
-  
+
   return response.json();
 
 
