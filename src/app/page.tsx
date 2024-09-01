@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Collapse, Divider, Modal, Tag } from 'antd';
 import { differenceInDays } from 'date-fns'
 
-import { formatDate } from '~/lib/utils';
+import { formatDate, getCharacterTag } from '~/lib/utils';
 
 import type {
   CharacterBasicInfo,
@@ -87,15 +87,19 @@ export default function Home() {
     }, {hasHyulBan: false, hasGaho: false, arcane: 0, absolabs: 0})
 
     const { hasHyulBan, hasGaho, arcane, absolabs } = equip;
+    const characterTag = getCharacterTag(basicInfo);
     const tags = [
       {color : hasHyulBan ? 'green' : 'red', label: hasHyulBan ? '혈반 있음': '혈반 없음'},
       {color : hasGaho ? 'green' : 'red', label: hasGaho ? '가호 있음' : '가호 없음'},
       {color: 'cyan', label: `${arcane}앜 ${absolabs}앱`},
     ]
 
+    if (characterTag) {
+      tags.unshift(characterTag);
+    }
 
     return tags
-  }, [itemEquipment])
+  }, [basicInfo, itemEquipment])
 
   const equipments = useMemo(() => {
     const filtered = itemEquipment.filter((item) => {
