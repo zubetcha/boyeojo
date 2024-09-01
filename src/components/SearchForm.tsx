@@ -49,7 +49,7 @@ const SearchForm = ({onError, onSuccess}: Props) => {
     }
 
     const url = new URLSearchParams({characterName, worldName}).toString();
-    router.push(`/?${url}` );
+    router.push(`?${url}` );
   }
 
   const onSearch = async ({characterName, worldName}: {characterName: string; worldName: string}) => {
