@@ -236,11 +236,13 @@ export default function Home() {
                   <ul className='list-disc pl-4'>
                     {characterInfo?.skillInfo?.skill?.preset.map((preset) => (
                       <div key={`preset-${preset.preset_slot_no}`}>
-                        <div>{preset.preset_slot_no}번 프리셋</div>
-                        <span>{preset.skill_name_1 || 'X'} / </span>
-                        <span>{preset.skill_name_2 || 'X'} / </span>
-                        <span>{preset.skill_name_3 || 'X'} / </span>
-                        <span>{preset.skill_name_4 || 'X'}</span>
+                        <li>{preset.preset_slot_no}번 프리셋</li>
+                        <span>
+                          {preset.skill_name_1 || 'X'} / 
+                          {preset.skill_name_2 || 'X'} / 
+                          {preset.skill_name_3 || 'X'} / 
+                          {preset.skill_name_4 || 'X'}
+                        </span>
                       </div>
                     ))}
                   </ul>
