@@ -19,10 +19,11 @@ export const getCharacterTag = (basicInfo: CharacterBasicInfo | null) => {
   }
 
   const characterLabels: Record<string, string> = {
-    홍차: '대마법사',
-    리땡: '흑마법사',
+    홍차: '🧙🏻‍♀️ 대마법사',
+    리땡: '🧙🏻‍♂️ 흑마법사',
     서진영: '약해빠짐',
-    뚱이: '악의 추종자',
+    뚱이: '🧑🏼‍⚖️ 빛의 심판자',
+    종아: '👼🏻 응애'
   }
 
   const label = characterLabels[basicInfo.character_name];
