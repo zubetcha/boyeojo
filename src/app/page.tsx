@@ -1,8 +1,6 @@
-'use client';
-
 import { Suspense, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { Collapse, Divider, Modal, Tag } from 'antd';
+import { Collapse, Divider, Tag } from 'antd';
 import { differenceInDays } from 'date-fns'
 
 import { formatDate, getCharacterTag } from '~/lib/utils';
