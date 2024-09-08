@@ -1,3 +1,5 @@
+'use client';
+
 import { Suspense, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Collapse, Divider, Tag } from 'antd';
